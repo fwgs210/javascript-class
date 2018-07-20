@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ES6 feature Test</title>
+    <style type="text/css">
+      body {
+        margin: 0;
+        background-color: #f2f2f2;
+      }
+      .wrapper {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+      .products {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .product-tile {
+        margin: 15px;
+        background: #fff;
+        padding: 10px;
+        width: 144px;
+      }
+      .nav {
+        margin: 60px 0 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .nav span {
+        margin: 5px;
+      }
+    </style>
+    <script>
+      /* all your JAVASCRIPT code goes here */
+
+      /**
+       * Create a `Product` Class
+       * - it should have a constructor
+       *   - which accepts a JSON object
+       *   - the object will carry {`title`,`desc`,`price`,`sale`}
+       *
+       * - it should create some private variables (using the JSON):
+       *   - `title`, `desc`, `price`, `sale`
+       *
+       * - it should have a `render` function
+       *   - which will return a DOM NODE used for displaying this product
+       *   - the product should consist of a DIV
+       *     - with a class `product-tile`
+       *     - that contains
+       *       - an image (http://via.placeholder.com/144x180)
+       *       - product title
+       *       - product price
+       *       - product description
+       *       - and a badge indicating whether the product is on sale
+       */
+      // function Product( obj ) {
+        // ...
+        class Product {
+          constructor(obj) {
+            const {title, desc, price, sale} = obj
+            this.title = title || '';
+            this.desc = desc || '';
+            this.price = price || '';
+            this.sale = sale || false;
+          }
+          render() {
+            const product = document.createElement('div')
+            if (this.sale) {
+              product.className = "product-tile sale"
+            } else {
+              product.className = "product-tile"
+            }
+            product.innerHTML = `
+                                <img src="http://via.placeholder.com/144x180" />
+                                <h3>${this.title}</h3>
+                                <h4>$ ${this.price.toFixed(2)}</h4>
+                                <p>${this.desc}</p>
+                                `
+            // product.appendChild(content)
+            return product
+
+          }
+        }
+
+      /**
+       * Create a `Nav` Class
+       * - it should have a constructor
+       *   - which accepts a JSON object
+       *   - the object will carry {`label`,`attr`}
+       *
+       * - it should create some private variables (using the JSON):
+       *   - label, attr
+       *
+       * - it should have a `render` function
+       *   - which will return a DOM NODE used for displaying this nav
+       *   - the nav should consist of
+       *     - a radio button
+       *     - a label to display the `label` text
+       *   - clicking the radio button should communicate to the Grid
+       *     - by sending the `attr` in a `CustomEvent`
+       *     - the Grid will sort the products on the provided `attr`ibute
+       */
+      // function Nav( obj ) {
+      //   // ...
+      // }
+        handleSort = (attr) => {
+            new all({products: all.products, navs: all.navs, attr }).renderProducts()
+        }
+
+      function Nav( obj ) {
+        return class {
+          constructor(obj) {
+            const {label, attr} = obj;
+            this.label = label || '';
+            this.attr = attr || '';
+          }
+          render() {
+            const nav = document.createElement('span')
+            nav.innerHTML = `
+                              <input type="radio" id="${this.attr}" name="filter" value="${this.attr}" onclick="handleSort('${this.attr}')" />
+                              <label for="${this.attr}">${this.label}</label>
+                            `
+            return nav
+          }
+        }
+      }
+      /**
+       * Create a `Grid` class
+       * - it should have a constructor
+       *   - which accepts a JSON object
+       *   - the object will carry `{ products:[], navs:[]}`
+       *
+       * - it should have a `renderProducts` function
+       *   - which instantiates `Product`s for each item in the JSON array
+       *   - and inserts the Product DOM Nodes into a DOM placeholder (with class `products`)
+       *   - using the `Product`s `render` function
+       *
+       * - it should have a `renderNavs` function
+       *   - which instantiates `Nav`s for each item in the JSON array
+       *   - and inserts the Nav DOM Nodes into a DOM placeholder (with class `nav`)
+       *   - using the `Nav`s `render` function
+       *
+       * - it should listen for communication from the Nav items
+       *   - the Nav items will send an `attr`
+       *   - the Grid should sort the `Product`s in ascending order
+       *   - using the provided `attr` of the Product
+       */
+      // function Grid( json ) {
+      //   // ...
+      //   })
+      function Grid(json) {
+        return class {
+          constructor(json) {
+            const { products, navs, attr } = json
+            this.products = products || []
+            this.navs = navs || []
+            this.sortBy = attr || ''
+            if (this.sortBy == 'title') {
+              this.products.sort(function(a,b) {return (a.title > b.title) ? 1 : ((b.title > a.title) ? -1 : 0);} ); 
+            } else if (this.sortBy == 'price') {
+              this.products.sort(function(a,b) {return (a.price > b.price) ? 1 : ((b.price > a.price) ? -1 : 0);} );
+            } else {
+              // do nothing
+            }
+          }
+          renderProducts() {
+            document.getElementsByClassName('products')[0].innerHTML = ''
+            this.products.forEach(e => {
+              const product = new Product(e).render();
+              document.getElementsByClassName('products')[0].appendChild(product)
+            })
+          }
+          renderNavs() {
+            this.navs.forEach(e => {
+              const nav = Nav()
+              const child = new nav(e).render();
+              document.getElementsByClassName('nav')[0].appendChild(child)
+            })
+          }
+        }
+      }
+      const all = new Grid()
+      init = async () => {
+          try {
+            all.products = await (await fetch(`http://private-152094-gbitest.apiary-mock.com/products`)).json()
+            all.navs = await (await fetch(`https://private-152094-gbitest.apiary-mock.com/navs`)).json()
+            new all({products: all.products, navs: all.navs}).renderNavs()
+            new all({products: all.products, navs: all.navs}).renderProducts()
+          } catch(err) {
+            console.log(err)
+          }
+         
+      };
+
+      /**
+       * Create an event listener that fires when the window has loaded
+       * - it should execute the init function
+       *   - which should first read the JSON from remote endpoints
+       *     - retrieve `products` from `http://private-152094-gbitest.apiary-mock.com/products`
+       *     - retrieve `navs` from `https://private-152094-gbitest.apiary-mock.com/navs`
+       *   - instantiate Grid using the `products` and `navs` from the received JSON
+       *     - call the `renderNavs` and `renderProducts`
+       */
+      window.addEventListener( 'load', init );
+    </script>
+    <style>
+      /* all your STYLESHEETS go here */
+    </style>
+  </head>
+  <body>
+    <div class='wrapper'>
+      <div class='nav'></div>
+      <div class='products'></div>
+    </div>
+  </body>
+</html>
