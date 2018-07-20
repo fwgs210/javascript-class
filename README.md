@@ -1,1 +1,1 @@
-# jQuery-clock
+# Test javascript Class prototype
